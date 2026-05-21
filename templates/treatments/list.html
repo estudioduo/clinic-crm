@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Tratamentos — CRM Odontológico{% endblock %}
+{% block page_title %}Tratamentos{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header py-3 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+    <form class="d-flex flex-wrap gap-2 align-items-center" method="get">
+      <div>
+        <label class="form-label mb-0 me-1 small">Status:</label>
+        <select name="status" class="form-select form-select-sm" style="width:140px;">
+          <option value="">Todos</option>
+          {% for s in ['Proposta','Em andamento','Concluído','Cancelado'] %}
+          <option {{ 'selected' if filter_status == s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-sm btn-primary">Filtrar</button>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    {% if treatments %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>Paciente</th><th>Tratamento</th><th>Dentista</th><th>Sessões</th><th>Valor</th><th>Status</th><th>Progresso</th><th class="text-end">Ações</th></tr>
+      </thead>
+      <tbody>
+      {% for t in treatments %}
+      <tr>
+        <td><a href="{{ url_for('patient_detail', id=t.patient_id) }}" class="text-decoration-none fw-medium">{{ t.patient.name }}</a></td>
+        <td>{{ t.name }}</td>
+        <td>{{ t.dentist.name if t.dentist else '—' }}</td>
+        <td><span class="badge bg-light text-dark">{{ t.sessions_completed }}/{{ t.sessions_planned }}</span></td>
+        <td class="fw-bold">R$ {{ '%.2f'|format(t.total_cost or 0) }}</td>
+        <td><span class="badge badge-status-{{ t.status|replace(' ', '') }} rounded-pill px-2">{{ t.status }}</span></td>
+        <td>
+          <div class="progress" style="width:80px;height:20px;">
+            <div class="progress-bar" role="progressbar" style="width:{{ t.progress }}%" aria-valuenow="{{ t.progress }}" aria-valuemin="0" aria-valuemax="100">{{ t.progress }}%</div>
+          </div>
+        </td>
+        <td class="text-end">
+          <button class="btn btn-action btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalEdit{{ t.id }}" title="Editar">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <!-- Modal editar -->
+          <div class="modal fade" id="modalEdit{{ t.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg"><div class="modal-content">
+              <div class="modal-header"><h6 class="modal-title">Editar Tratamento</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+              <div class="modal-body">
+                <form method="post" action="{{ url_for('treatment_update', id=t.id) }}">
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                      <label class="form-label small">Status</label>
+                      <select name="status" class="form-select form-select-sm">
+                        {% for s in ['Proposta','Em andamento','Concluído','Cancelado'] %}
+                        <option {{ 'selected' if t.status == s }}>{{ s }}</option>{% endfor %}
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label small">Sessões Completadas</label>
+                      <input type="number" name="sessions_completed" class="form-control form-control-sm" value="{{ t.sessions_completed }}" min="0">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label small">Valor Pago (R$)</label>
+                      <input type="number" step="0.01" name="paid_amount" class="form-control form-control-sm" value="{{ t.paid_amount or 0 }}">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label small">Data de Conclusão</label>
+                      <input type="date" name="end_date" class="form-control form-control-sm" value="{{ t.end_date.strftime('%Y-%m-%d') if t.end_date else '' }}">
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-success btn-sm">Salvar</button>
+                </form>
+              </div>
+            </div></div>
+          </div>
+          <form method="post" action="{{ url_for('treatment_delete', id=t.id) }}" class="d-inline" onsubmit="return confirm('Remover tratamento?')">
+            <button class="btn btn-action btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-inbox fs-1 d-block mb-3"></i>Nenhum tratamento registrado
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
