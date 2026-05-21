@@ -229,6 +229,8 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and user.check_password(password) and user.active:
+            session.permanent = True
+            app.permanent_session_lifetime = timedelta(days=7)
             session['user_id'] = user.id
             flash(f'Bem-vindo, {user.name}!', 'success')
             return redirect(url_for('dashboard'))
