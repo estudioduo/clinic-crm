@@ -333,6 +333,10 @@ def admin_access_clinic(clinic_id):
 @require_login
 def dashboard():
     clinic_id = get_clinic_id()
+    if not clinic_id:
+        flash('Acesso restrito', 'danger')
+        return redirect(url_for('login'))
+
     today = date.today()
 
     total_patients = Patient.query.filter_by(clinic_id=clinic_id).count()
@@ -557,6 +561,159 @@ def api_appointments():
     return jsonify(events)
 
 
+# ─── Appointments (CRUD) ──────────────────────────────────────────────────────
+
+@app.route('/appointments/new', methods=['GET', 'POST'])
+@require_login
+def appointment_new():
+    clinic_id = get_clinic_id()
+    if request.method == 'POST':
+        try:
+            date_str = request.form.get('date')
+            time_str = request.form.get('time')
+            appointment = Appointment(
+                clinic_id=clinic_id,
+                patient_id=request.form['patient_id'],
+                dentist_id=request.form.get('dentist_id'),
+                date=datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else None,
+                time=datetime.strptime(time_str, '%H:%M').time() if time_str else None,
+                type=request.form.get('type'),
+                status='Agendado'
+            )
+            db.session.add(appointment)
+            db.session.commit()
+            flash('Consulta agendada!', 'success')
+            return redirect(url_for('appointments'))
+        except Exception as e:
+            flash(f'Erro ao agendar: {str(e)}', 'danger')
+    return render_template('appointments/form.html', appointment=None,
+                         patients=Patient.query.filter_by(clinic_id=clinic_id).all(),
+                         dentists=Dentist.query.filter_by(clinic_id=clinic_id, active=True).all())
+
+
+@app.route('/appointments/<int:id>/edit', methods=['POST'])
+@require_login
+def appointment_edit(id):
+    clinic_id = get_clinic_id()
+    apt = Appointment.query.get_or_404(id)
+    if apt.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('appointments'))
+    apt.status = request.form.get('status', apt.status)
+    db.session.commit()
+    flash('Consulta atualizada!', 'success')
+    return redirect(url_for('appointments'))
+
+
+@app.route('/appointments/<int:id>/delete', methods=['POST'])
+@require_login
+def appointment_delete(id):
+    clinic_id = get_clinic_id()
+    apt = Appointment.query.get_or_404(id)
+    if apt.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('appointments'))
+    db.session.delete(apt)
+    db.session.commit()
+    flash('Consulta removida.', 'info')
+    return redirect(url_for('appointments'))
+
+
+# ─── Dentists (CRUD) ──────────────────────────────────────────────────────────
+
+@app.route('/dentists/new', methods=['GET', 'POST'])
+@require_login
+def dentist_new():
+    clinic_id = get_clinic_id()
+    if request.method == 'POST':
+        dentist = Dentist(
+            clinic_id=clinic_id,
+            name=request.form['name'],
+            cro=request.form.get('cro'),
+            specialties=request.form.get('specialties'),
+            phone=request.form.get('phone'),
+            email=request.form.get('email'),
+            active=True
+        )
+        db.session.add(dentist)
+        db.session.commit()
+        flash('Dentista cadastrado!', 'success')
+        return redirect(url_for('dentists'))
+    return render_template('dentists/form.html', dentist=None)
+
+
+@app.route('/dentists/<int:id>/edit', methods=['GET', 'POST'])
+@require_login
+def dentist_edit(id):
+    clinic_id = get_clinic_id()
+    dentist = Dentist.query.get_or_404(id)
+    if dentist.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('dentists'))
+    if request.method == 'POST':
+        dentist.name = request.form['name']
+        dentist.cro = request.form.get('cro')
+        dentist.specialties = request.form.get('specialties')
+        dentist.phone = request.form.get('phone')
+        dentist.email = request.form.get('email')
+        db.session.commit()
+        flash('Dentista atualizado!', 'success')
+        return redirect(url_for('dentists'))
+    return render_template('dentists/form.html', dentist=dentist)
+
+
+@app.route('/dentists/<int:id>/delete', methods=['POST'])
+@require_login
+def dentist_delete(id):
+    clinic_id = get_clinic_id()
+    dentist = Dentist.query.get_or_404(id)
+    if dentist.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('dentists'))
+    db.session.delete(dentist)
+    db.session.commit()
+    flash('Dentista removido.', 'info')
+    return redirect(url_for('dentists'))
+
+
+# ─── Treatments ───────────────────────────────────────────────────────────────
+
+@app.route('/treatments/<int:id>/update', methods=['POST'])
+@require_login
+def treatment_update(id):
+    clinic_id = get_clinic_id()
+    treatment = Treatment.query.get_or_404(id)
+    if treatment.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('treatments'))
+    treatment.status = request.form.get('status', treatment.status)
+    treatment.sessions_completed = int(request.form.get('sessions_completed', treatment.sessions_completed))
+    treatment.paid_amount = float(request.form.get('paid_amount', treatment.paid_amount or 0))
+    end_date_str = request.form.get('end_date')
+    if end_date_str:
+        treatment.end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+    db.session.commit()
+    flash('Tratamento atualizado!', 'success')
+    return redirect(url_for('treatments'))
+
+
+@app.route('/treatments/<int:id>/delete', methods=['POST'])
+@require_login
+def treatment_delete(id):
+    clinic_id = get_clinic_id()
+    treatment = Treatment.query.get_or_404(id)
+    if treatment.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('treatments'))
+    db.session.delete(treatment)
+    db.session.commit()
+    flash('Tratamento removido.', 'info')
+    return redirect(url_for('treatments'))
+
+
+# ─── Financial ────────────────────────────────────────────────────────────────
+
+@app.route('/financial')
 # ─── Init ──────────────────────────────────────────────────────────────────────
 
 def create_sample_data():

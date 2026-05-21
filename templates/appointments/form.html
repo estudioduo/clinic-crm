@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ 'Editar' if appointment else 'Nova' }} Consulta — CRM Clínica{% endblock %}
+{% block title %}{{ 'Editar' if appointment else 'Nova' }} Consulta — CRM Odontológico{% endblock %}
 {% block page_title %}{{ 'Editar Consulta' if appointment else 'Nova Consulta' }}{% endblock %}
 
 {% block content %}
@@ -23,12 +23,12 @@
               </select>
             </div>
             <div class="col-12">
-              <label class="form-label fw-medium">Médico</label>
-              <select name="doctor_id" class="form-select">
-                <option value="">— Selecionar médico —</option>
-                {% for d in doctors %}
-                <option value="{{ d.id }}" {{ 'selected' if appointment and appointment.doctor_id == d.id }}>
-                  {{ d.name }}{% if d.specialty %} — {{ d.specialty }}{% endif %}
+              <label class="form-label fw-medium">Dentista</label>
+              <select name="dentist_id" class="form-select">
+                <option value="">— Selecionar dentista —</option>
+                {% for d in dentists %}
+                <option value="{{ d.id }}" {{ 'selected' if appointment and appointment.dentist_id == d.id }}>
+                  {{ d.name }}{% if d.specialties %} — {{ d.specialties }}{% endif %}
                 </option>
                 {% endfor %}
               </select>
