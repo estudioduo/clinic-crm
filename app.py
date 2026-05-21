@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, date, timedelta
 from sqlalchemy import func
+from functools import wraps
 import os
 import secrets
 import string
@@ -196,22 +197,25 @@ def get_clinic_id():
 
 
 def require_login(f):
+    @wraps(f)
     def wrapper(*args, **kwargs):
         if not g.user:
             flash('Faça login para continuar', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
     return wrapper
 
 
 def require_admin(f):
+    @wraps(f)
     def wrapper(*args, **kwargs):
-        if not g.user or not g.user.is_admin:
-            flash('Acesso restrito', 'danger')
+        if not g.user:
+            flash('Faça login para continuar', 'warning')
+            return redirect(url_for('login'))
+        if not g.user.is_admin:
+            flash('Acesso restrito a admins', 'danger')
             return redirect(url_for('dashboard'))
         return f(*args, **kwargs)
-    wrapper.__name__ = f.__name__
     return wrapper
 
 
