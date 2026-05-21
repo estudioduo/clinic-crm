@@ -7,6 +7,7 @@ from functools import wraps
 import os
 import secrets
 import string
+import stripe
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'odonto-crm-secret-2024')
@@ -19,7 +20,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+# Stripe Config
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
 ADMIN_EMAIL = 'admin@odontcrm.com'
+
+PLAN_PRICES = {
+    'basic': 4900,  # R$49 em centavos
+    'premium': 19900,  # R$199 em centavos
+}
 
 # ─── Models ───────────────────────────────────────────────────────────────────
 
@@ -31,6 +42,9 @@ class Clinic(db.Model):
     status = db.Column(db.String(20), default='active')  # active, suspended, cancelled
     admin_email = db.Column(db.String(120))
     invite_token = db.Column(db.String(32), unique=True)
+    stripe_customer_id = db.Column(db.String(100))
+    stripe_subscription_id = db.Column(db.String(100))
+    payment_status = db.Column(db.String(20), default='unpaid')  # unpaid, paid, cancelled
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     users = db.relationship('User', backref='clinic', lazy=True, cascade='all, delete-orphan')
     patients = db.relationship('Patient', backref='clinic', lazy=True, cascade='all, delete-orphan')
@@ -379,6 +393,91 @@ def admin_access_clinic(clinic_id):
     session['admin_clinic_id'] = clinic_id
     flash(f'Acessando {clinic.name} como admin', 'info')
     return redirect(url_for('dashboard'))
+
+
+# ─── Pagamento (Stripe) ────────────────────────────────────────────────────────
+
+@app.route('/checkout/<int:clinic_id>')
+@require_admin
+def checkout(clinic_id):
+    """Redirecionar para Stripe Checkout"""
+    clinic = Clinic.query.get_or_404(clinic_id)
+
+    # Não cobrar Free
+    if clinic.plan == 'free':
+        clinic.payment_status = 'paid'
+        db.session.commit()
+        flash('Plano Free ativado!', 'success')
+        return redirect(url_for('admin_dashboard'))
+
+    # Preço do plano
+    price = PLAN_PRICES.get(clinic.plan)
+    if not price:
+        flash('Plano inválido', 'danger')
+        return redirect(url_for('admin_dashboard'))
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'brl',
+                    'product_data': {
+                        'name': f'OdontoCRM - Plano {clinic.plan.capitalize()}',
+                        'description': f'Clínica: {clinic.name}',
+                    },
+                    'unit_amount': price,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('checkout_success', clinic_id=clinic_id, _external=True),
+            cancel_url=url_for('admin_dashboard', _external=True),
+            customer_email=clinic.admin_email,
+            metadata={'clinic_id': clinic_id}
+        )
+        return redirect(checkout_session.url)
+    except Exception as e:
+        flash(f'Erro ao processar pagamento: {str(e)}', 'danger')
+        return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/checkout/success/<int:clinic_id>')
+def checkout_success(clinic_id):
+    """Página de sucesso após pagamento"""
+    clinic = Clinic.query.get_or_404(clinic_id)
+    clinic.payment_status = 'paid'
+    db.session.commit()
+    flash(f'Pagamento confirmado! Clínica {clinic.name} ativada.', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+
+@app.route('/webhook/stripe', methods=['POST'])
+def stripe_webhook():
+    """Webhook para confirmar pagamentos do Stripe"""
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        return jsonify({'status': 'invalid payload'}), 400
+    except stripe.error.SignatureVerificationError:
+        return jsonify({'status': 'invalid signature'}), 400
+
+    # Processar evento de pagamento
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        clinic_id = session.get('metadata', {}).get('clinic_id')
+        if clinic_id:
+            clinic = Clinic.query.get(clinic_id)
+            if clinic:
+                clinic.payment_status = 'paid'
+                db.session.commit()
+
+    return jsonify({'status': 'success'}), 200
 
 
 # ─── Dashboard ─────────────────────────────────────────────────────────────────
