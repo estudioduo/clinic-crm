@@ -7,7 +7,9 @@ from functools import wraps
 import os
 import secrets
 import string
-import stripe
+import qrcode
+from io import BytesIO
+import base64
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'odonto-crm-secret-2024')
@@ -20,16 +22,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Stripe Config
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
-STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY')
-STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET')
+# Pix Config
+PIX_KEY = os.environ.get('PIX_KEY', '')  # email, CPF ou CNPJ
+PIX_NAME = os.environ.get('PIX_NAME', 'OdontoCRM')
 
 ADMIN_EMAIL = 'admin@odontcrm.com'
 
 PLAN_PRICES = {
-    'basic': 4900,  # R$49 em centavos
-    'premium': 19900,  # R$199 em centavos
+    'basic': 49.00,  # R$49
+    'premium': 199.00,  # R$199
 }
 
 # ─── Models ───────────────────────────────────────────────────────────────────
@@ -395,12 +396,33 @@ def admin_access_clinic(clinic_id):
     return redirect(url_for('dashboard'))
 
 
-# ─── Pagamento (Stripe) ────────────────────────────────────────────────────────
+# ─── Pagamento (Pix) ──────────────────────────────────────────────────────────
+
+def generate_pix_qrcode(clinic_id, amount):
+    """Gera QR code Pix para pagamento"""
+    if not PIX_KEY:
+        return None
+
+    # Dados do Pix (formato simplificado)
+    # Em produção, usar biblioteca brcode para gerar Pix dinâmico
+    pix_data = f"{PIX_KEY}|{amount}|{clinic_id}"
+
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(pix_data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    return base64.b64encode(buffer.getvalue()).decode()
+
 
 @app.route('/checkout/<int:clinic_id>')
 @require_admin
 def checkout(clinic_id):
-    """Redirecionar para Stripe Checkout"""
+    """Página de pagamento com Pix"""
     clinic = Clinic.query.get_or_404(clinic_id)
 
     # Não cobrar Free
@@ -416,68 +438,29 @@ def checkout(clinic_id):
         flash('Plano inválido', 'danger')
         return redirect(url_for('admin_dashboard'))
 
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'brl',
-                    'product_data': {
-                        'name': f'OdontoCRM - Plano {clinic.plan.capitalize()}',
-                        'description': f'Clínica: {clinic.name}',
-                    },
-                    'unit_amount': price,
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=url_for('checkout_success', clinic_id=clinic_id, _external=True),
-            cancel_url=url_for('admin_dashboard', _external=True),
-            customer_email=clinic.admin_email,
-            metadata={'clinic_id': clinic_id}
-        )
-        return redirect(checkout_session.url)
-    except Exception as e:
-        flash(f'Erro ao processar pagamento: {str(e)}', 'danger')
+    if not PIX_KEY:
+        flash('Chave Pix não configurada. Configure PIX_KEY no .env', 'danger')
         return redirect(url_for('admin_dashboard'))
 
+    qr_code = generate_pix_qrcode(clinic_id, int(price * 100))
 
-@app.route('/checkout/success/<int:clinic_id>')
-def checkout_success(clinic_id):
-    """Página de sucesso após pagamento"""
+    return render_template('payment/pix.html',
+        clinic=clinic,
+        amount=price,
+        qr_code=qr_code,
+        pix_key=PIX_KEY,
+        pix_name=PIX_NAME)
+
+
+@app.route('/payment/confirm/<int:clinic_id>', methods=['POST'])
+@require_admin
+def payment_confirm(clinic_id):
+    """Admin confirma pagamento manualmente"""
     clinic = Clinic.query.get_or_404(clinic_id)
     clinic.payment_status = 'paid'
     db.session.commit()
     flash(f'Pagamento confirmado! Clínica {clinic.name} ativada.', 'success')
     return redirect(url_for('admin_dashboard'))
-
-
-@app.route('/webhook/stripe', methods=['POST'])
-def stripe_webhook():
-    """Webhook para confirmar pagamentos do Stripe"""
-    payload = request.get_data()
-    sig_header = request.headers.get('Stripe-Signature')
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError:
-        return jsonify({'status': 'invalid payload'}), 400
-    except stripe.error.SignatureVerificationError:
-        return jsonify({'status': 'invalid signature'}), 400
-
-    # Processar evento de pagamento
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        clinic_id = session.get('metadata', {}).get('clinic_id')
-        if clinic_id:
-            clinic = Clinic.query.get(clinic_id)
-            if clinic:
-                clinic.payment_status = 'paid'
-                db.session.commit()
-
-    return jsonify({'status': 'success'}), 200
 
 
 # ─── Dashboard ─────────────────────────────────────────────────────────────────

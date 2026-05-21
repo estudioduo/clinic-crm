@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Pagamento Pix — OdontoCRM{% endblock %}
+{% block page_title %}Pagamento Pix{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-8 mx-auto">
+    <div class="card">
+      <div class="card-body p-4">
+        <h4 class="mb-4">Pagamento - {{ clinic.name }}</h4>
+
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          <strong>Plano {{ clinic.plan.upper() }}</strong> — R$ {{ '%.2f'|format(amount) }}
+        </div>
+
+        <div class="row g-4">
+          <!-- QR Code -->
+          <div class="col-md-6">
+            <div class="text-center">
+              <h6 class="text-muted mb-3">Escaneie com seu celular</h6>
+              {% if qr_code %}
+              <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code Pix" style="width: 250px; height: 250px; border: 2px solid #f0f0f0; padding: 10px; border-radius: 8px;">
+              {% else %}
+              <div class="alert alert-warning">
+                <small>QR Code não gerado. Configure PIX_KEY no .env</small>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Instruções -->
+          <div class="col-md-6">
+            <h6>Instruções de Pagamento:</h6>
+            <ol class="small" style="line-height: 1.8;">
+              <li>Abra o app do seu banco</li>
+              <li>Selecione "Pix" ou "Transferência"</li>
+              <li>Escolha "QR Code" e escaneie a imagem ao lado</li>
+              <li>Confirme o valor: <strong>R$ {{ '%.2f'|format(amount) }}</strong></li>
+              <li>Complete o pagamento</li>
+              <li>Avise o administrador para confirmar</li>
+            </ol>
+
+            <hr>
+
+            <h6 class="mt-4">Dados da Chave Pix:</h6>
+            <div class="bg-light p-3 rounded mb-3" style="word-break: break-all; font-family: monospace; font-size: 0.9rem;">
+              {{ pix_key }}
+            </div>
+            <small class="text-muted">Pode copiar e colar em "Copiar e colar" do seu banco se preferir</small>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div class="alert alert-success">
+          <i class="bi bi-check-circle me-2"></i>
+          Após realizar o pagamento, o administrador confirmará o recebimento.
+        </div>
+
+        <div class="d-flex gap-2">
+          <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Voltar para Admin</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
