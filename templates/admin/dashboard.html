@@ -78,7 +78,12 @@
                 {{ 'Ativa' if stat.clinic.status == 'active' else 'Suspensa' if stat.clinic.status == 'suspended' else 'Cancelada' }}
               </span>
             </td>
-            <td><span class="badge bg-light text-dark">{{ stat.patients }}</span></td>
+            <td>
+              <span class="badge bg-light text-dark">{{ stat.patient_usage }}</span>
+              {% if stat.patient_limit and stat.patients >= stat.patient_limit %}
+              <i class="bi bi-exclamation-circle text-warning ms-1" title="Limite atingido"></i>
+              {% endif %}
+            </td>
             <td><span class="badge bg-light text-dark">{{ stat.appointments }}</span></td>
             <td class="fw-bold">R$ {{ '%.2f'|format(stat.revenue) }}</td>
             <td class="text-end">
@@ -147,6 +152,14 @@
           <div class="mb-3">
             <label class="form-label small">E-mail do Admin</label>
             <input type="email" name="admin_email" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">Plano</label>
+            <select name="plan" class="form-select form-select-sm" required>
+              <option value="free">Free - R$0/mês (até 50 pacientes)</option>
+              <option value="basic">Basic - R$49/mês (pacientes ilimitados)</option>
+              <option value="premium">Premium - R$199/mês (pacientes + suporte prioritário)</option>
+            </select>
           </div>
           <div class="alert alert-info small" role="alert">
             <i class="bi bi-info-circle me-1"></i>

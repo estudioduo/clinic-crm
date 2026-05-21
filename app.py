@@ -196,6 +196,25 @@ def get_clinic_id():
     return g.clinic_id
 
 
+def get_plan_limits(plan):
+    """Retorna limites para cada plano"""
+    limits = {
+        'free': {'max_patients': 50, 'max_dentists': 2, 'max_appointments_per_month': 100},
+        'basic': {'max_patients': None, 'max_dentists': 10, 'max_appointments_per_month': None},
+        'premium': {'max_patients': None, 'max_dentists': None, 'max_appointments_per_month': None},
+    }
+    return limits.get(plan, limits['free'])
+
+
+def can_add_patient(clinic):
+    """Verifica se clínica pode adicionar outro paciente"""
+    limits = get_plan_limits(clinic.plan)
+    if limits['max_patients'] is None:
+        return True
+    patient_count = Patient.query.filter_by(clinic_id=clinic.id).count()
+    return patient_count < limits['max_patients']
+
+
 def require_login(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -312,9 +331,13 @@ def admin_dashboard():
     clinics = Clinic.query.order_by(Clinic.created_at.desc()).all()
     clinic_stats = []
     for clinic in clinics:
+        patient_count = Patient.query.filter_by(clinic_id=clinic.id).count()
+        limits = get_plan_limits(clinic.plan)
         stats = {
             'clinic': clinic,
-            'patients': Patient.query.filter_by(clinic_id=clinic.id).count(),
+            'patients': patient_count,
+            'patient_limit': limits['max_patients'],
+            'patient_usage': f"{patient_count}/{limits['max_patients']}" if limits['max_patients'] else str(patient_count),
             'appointments': Appointment.query.filter(Appointment.clinic_id==clinic.id, Appointment.date>=date.today()).count(),
             'revenue': db.session.query(func.sum(Payment.amount)).filter(Payment.clinic_id==clinic.id, Payment.status=='Pago').scalar() or 0,
         }
@@ -335,8 +358,9 @@ def admin_clinic_new():
     name = request.form.get('name')
     cnpj = request.form.get('cnpj')
     admin_email = request.form.get('admin_email')
+    plan = request.form.get('plan', 'free')
 
-    clinic = Clinic(name=name, cnpj=cnpj, admin_email=admin_email)
+    clinic = Clinic(name=name, cnpj=cnpj, admin_email=admin_email, plan=plan)
     clinic.invite_token = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
     db.session.add(clinic)
     db.session.commit()
@@ -437,6 +461,14 @@ def patients():
 @require_login
 def patient_new():
     clinic_id = get_clinic_id()
+    clinic = Clinic.query.get_or_404(clinic_id)
+
+    # Validar limite de pacientes
+    if not can_add_patient(clinic):
+        limits = get_plan_limits(clinic.plan)
+        flash(f'Limite de {limits["max_patients"]} pacientes atingido no plano {clinic.plan.upper()}. Upgrade para Basic ou Premium.', 'warning')
+        return redirect(url_for('patients'))
+
     if request.method == 'POST':
         bd = request.form.get('birth_date')
         patient = Patient(
