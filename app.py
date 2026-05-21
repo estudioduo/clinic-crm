@@ -281,9 +281,15 @@ def signup(token):
 # ─── Admin Panel ───────────────────────────────────────────────────────────────
 
 @app.route('/admin')
-@require_admin
 def admin_dashboard():
     """Painel do proprietário (você)"""
+    if not g.user:
+        flash('Faça login para continuar', 'warning')
+        return redirect(url_for('login'))
+    if not g.user.is_admin:
+        flash('Acesso restrito', 'danger')
+        return redirect(url_for('dashboard'))
+
     total_clinics = Clinic.query.count()
     active_clinics = Clinic.query.filter_by(status='active').count()
     total_revenue = db.session.query(func.sum(Payment.amount)).filter_by(status='Pago').scalar() or 0
@@ -728,23 +734,6 @@ def treatment_delete(id):
 # ─── Financial ────────────────────────────────────────────────────────────────
 
 @app.route('/financial')
-# ─── Debug ────────────────────────────────────────────────────────────────────
-
-@app.route('/debug')
-def debug():
-    """Debug page - check session and user"""
-    user_id = session.get('user_id')
-    user = User.query.get(user_id) if user_id else None
-    return f"""
-    <h2>Debug Info</h2>
-    <p>Session user_id: {user_id}</p>
-    <p>User: {user.name if user else 'None'}</p>
-    <p>User is_admin: {user.is_admin if user else 'N/A'}</p>
-    <p>g.user: {g.user}</p>
-    <p>g.user.is_admin: {g.user.is_admin if g.user else 'N/A'}</p>
-    """
-
-
 # ─── Init ──────────────────────────────────────────────────────────────────────
 
 def create_sample_data():
