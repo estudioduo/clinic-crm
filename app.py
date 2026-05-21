@@ -360,13 +360,16 @@ def admin_access_clinic(clinic_id):
 # ─── Dashboard ─────────────────────────────────────────────────────────────────
 
 @app.route('/')
-def dashboard():
-    # Se não logado, mostra landing page
-    if not g.user:
-        return render_template('landing.html')
+def index():
+    # Landing page sempre mostra
+    return render_template('landing.html')
 
-    # Admin vai para /admin, não /
-    if g.user.is_admin:
+
+@app.route('/dashboard')
+@require_login
+def dashboard():
+    # Admin vai para /admin, não /dashboard
+    if g.user and g.user.is_admin:
         return redirect(url_for('admin_dashboard'))
 
     clinic_id = get_clinic_id()
