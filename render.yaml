@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: odontcrm
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DATABASE_URL
+        scope: build
+        value: postgresql://user:password@host/dbname
+      - key: SECRET_KEY
+        scope: build
+        value: odonto-crm-secret-2024
