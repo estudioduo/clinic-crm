@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if appointment else 'Nova' }} Consulta — CRM Clínica{% endblock %}
+{% block page_title %}{{ 'Editar Consulta' if appointment else 'Nova Consulta' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header py-3"><i class="bi bi-calendar-plus me-2"></i>Dados da Consulta</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-medium">Paciente <span class="text-danger">*</span></label>
+              <select name="patient_id" class="form-select" required>
+                <option value="">— Selecionar paciente —</option>
+                {% for p in patients %}
+                <option value="{{ p.id }}"
+                  {{ 'selected' if (appointment and appointment.patient_id == p.id) or (preselected_patient and preselected_patient|int == p.id) }}>
+                  {{ p.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Médico</label>
+              <select name="doctor_id" class="form-select">
+                <option value="">— Selecionar médico —</option>
+                {% for d in doctors %}
+                <option value="{{ d.id }}" {{ 'selected' if appointment and appointment.doctor_id == d.id }}>
+                  {{ d.name }}{% if d.specialty %} — {{ d.specialty }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label fw-medium">Data <span class="text-danger">*</span></label>
+              <input type="date" name="date" class="form-control" required
+                     value="{{ appointment.date.strftime('%Y-%m-%d') if appointment else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-medium">Horário <span class="text-danger">*</span></label>
+              <input type="time" name="time" class="form-control" required
+                     value="{{ appointment.time.strftime('%H:%M') if appointment else '' }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-medium">Duração (min)</label>
+              <select name="duration" class="form-select">
+                {% for d in [15, 30, 45, 60, 90, 120] %}
+                <option value="{{ d }}" {{ 'selected' if appointment and appointment.duration == d else ('selected' if d == 30 and not appointment) }}>
+                  {{ d }} min
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Tipo</label>
+              <select name="type" class="form-select">
+                {% for t in ['Consulta','Retorno','Exame','Procedimento','Cirurgia','Outro'] %}
+                <option {{ 'selected' if appointment and appointment.type == t }}>{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Status</label>
+              <select name="status" class="form-select">
+                {% for s in ['Agendado','Confirmado','Realizado','Cancelado'] %}
+                <option {{ 'selected' if appointment and appointment.status == s else ('selected' if s == 'Agendado' and not appointment) }}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Motivo / Queixa</label>
+              <input name="reason" class="form-control" value="{{ appointment.reason if appointment else '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Observações</label>
+              <textarea name="notes" class="form-control" rows="2">{{ appointment.notes if appointment else '' }}</textarea>
+            </div>
+          </div>
+          <hr class="my-4">
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>{{ 'Salvar Alterações' if appointment else 'Agendar Consulta' }}
+            </button>
+            <a href="{{ url_for('appointments') }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+if (!document.querySelector('input[name="date"]').value) {
+  document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
+}
+</script>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Consultas — CRM Clínica{% endblock %}
+{% block page_title %}Consultas{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header py-3">
+    <form class="d-flex flex-wrap gap-2 align-items-center" method="get">
+      <div>
+        <label class="form-label mb-0 me-1 small">Data:</label>
+        <input type="date" name="date" value="{{ filter_date }}" class="form-control form-control-sm" style="width:150px;">
+      </div>
+      <div>
+        <label class="form-label mb-0 me-1 small">Status:</label>
+        <select name="status" class="form-select form-select-sm" style="width:140px;">
+          <option value="">Todos</option>
+          {% for s in ['Agendado','Confirmado','Realizado','Cancelado'] %}
+          <option {{ 'selected' if filter_status == s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-sm btn-primary">Filtrar</button>
+      <a href="{{ url_for('appointments') }}" class="btn btn-sm btn-outline-secondary">Hoje</a>
+      <div class="ms-auto">
+        <a href="{{ url_for('appointment_new') }}" class="btn btn-sm btn-success">
+          <i class="bi bi-plus-lg me-1"></i>Nova Consulta
+        </a>
+      </div>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    {% if appointments %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>Hora</th><th>Paciente</th><th>Médico</th><th>Tipo</th><th>Motivo</th><th>Status</th><th class="text-end">Ações</th></tr>
+      </thead>
+      <tbody>
+      {% for a in appointments %}
+      <tr>
+        <td class="fw-medium">{{ a.time.strftime('%H:%M') }}</td>
+        <td>
+          <a href="{{ url_for('patient_detail', id=a.patient_id) }}" class="text-decoration-none fw-medium">{{ a.patient.name }}</a>
+        </td>
+        <td>{{ a.doctor.name if a.doctor else '—' }}</td>
+        <td><span class="badge bg-light text-dark">{{ a.type }}</span></td>
+        <td class="text-muted" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          {{ a.reason or '—' }}
+        </td>
+        <td>
+          <form method="post" action="{{ url_for('appointment_status', id=a.id) }}" class="d-inline">
+            <select name="status" class="form-select form-select-sm badge-status-{{ a.status }}"
+                    style="width:120px;font-size:.78rem;" onchange="this.form.submit()">
+              {% for s in ['Agendado','Confirmado','Realizado','Cancelado'] %}
+              <option {{ 'selected' if a.status == s }}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </td>
+        <td class="text-end">
+          <a href="{{ url_for('appointment_edit', id=a.id) }}" class="btn btn-action btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+          <form method="post" action="{{ url_for('appointment_delete', id=a.id) }}" class="d-inline" onsubmit="return confirm('Remover consulta?')">
+            <button class="btn btn-action btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-calendar-x fs-1 d-block mb-3"></i>Nenhuma consulta para este filtro
+    </div>
+    {% endif %}
+  </div>
+  {% if appointments %}
+  <div class="card-footer text-muted" style="font-size:.82rem;">{{ appointments|length }} consulta(s)</div>
+  {% endif %}
+</div>
+{% endblock %}

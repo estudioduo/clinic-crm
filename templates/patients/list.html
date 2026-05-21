@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Pacientes — CRM Clínica{% endblock %}
+{% block page_title %}Pacientes{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header py-3 d-flex justify-content-between align-items-center">
+    <form class="d-flex gap-2" method="get">
+      <input name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar por nome ou CPF..." style="width:260px;">
+      <button class="btn btn-sm btn-primary"><i class="bi bi-search"></i></button>
+      {% if q %}<a href="{{ url_for('patients') }}" class="btn btn-sm btn-outline-secondary">Limpar</a>{% endif %}
+    </form>
+    <a href="{{ url_for('patient_new') }}" class="btn btn-sm btn-success">
+      <i class="bi bi-person-plus me-1"></i>Novo Paciente
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if patients %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Paciente</th><th>CPF</th><th>Telefone</th><th>E-mail</th><th>Idade</th><th>Tipo Sang.</th><th class="text-end">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for p in patients %}
+      <tr>
+        <td>
+          <div class="d-flex align-items-center gap-2">
+            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white"
+                 style="width:34px;height:34px;background:#3b82f6;flex-shrink:0;font-size:.8rem;">
+              {{ p.name[:2].upper() }}
+            </div>
+            <a href="{{ url_for('patient_detail', id=p.id) }}" class="fw-medium text-decoration-none text-dark">{{ p.name }}</a>
+          </div>
+        </td>
+        <td class="text-muted">{{ p.cpf or '—' }}</td>
+        <td>{{ p.phone or '—' }}</td>
+        <td>{{ p.email or '—' }}</td>
+        <td>{{ p.age or '—' }}</td>
+        <td>{{ p.blood_type or '—' }}</td>
+        <td class="text-end">
+          <a href="{{ url_for('patient_detail', id=p.id) }}" class="btn btn-sm btn-action btn-outline-primary" title="Ver"><i class="bi bi-eye"></i></a>
+          <a href="{{ url_for('patient_edit', id=p.id) }}" class="btn btn-sm btn-action btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></a>
+          <form method="post" action="{{ url_for('patient_delete', id=p.id) }}" class="d-inline" onsubmit="return confirm('Remover {{ p.name }}?')">
+            <button class="btn btn-sm btn-action btn-outline-danger" title="Remover"><i class="bi bi-trash"></i></button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-people fs-1 d-block mb-3"></i>
+      {% if q %}Nenhum paciente encontrado para "{{ q }}"{% else %}Nenhum paciente cadastrado ainda{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% if patients %}
+  <div class="card-footer text-muted" style="font-size:.82rem;">
+    {{ patients|length }} paciente(s) encontrado(s)
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

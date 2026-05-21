@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% block title %}{{ patient.name }} — CRM Clínica{% endblock %}
+{% block page_title %}Perfil do Paciente{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+  <!-- Sidebar do paciente -->
+  <div class="col-lg-3">
+    <div class="card mb-3">
+      <div class="card-body text-center py-4">
+        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white mx-auto mb-3"
+             style="width:72px;height:72px;background:#3b82f6;font-size:1.5rem;">
+          {{ patient.name[:2].upper() }}
+        </div>
+        <h6 class="fw-bold mb-0">{{ patient.name }}</h6>
+        {% if patient.age %}<small class="text-muted">{{ patient.age }} anos</small>{% endif %}
+        <hr>
+        <div class="text-start" style="font-size:.85rem;">
+          {% if patient.phone %}
+          <div class="d-flex gap-2 mb-1"><i class="bi bi-telephone text-muted"></i> {{ patient.phone }}</div>
+          {% endif %}
+          {% if patient.email %}
+          <div class="d-flex gap-2 mb-1"><i class="bi bi-envelope text-muted"></i> {{ patient.email }}</div>
+          {% endif %}
+          {% if patient.cpf %}
+          <div class="d-flex gap-2 mb-1"><i class="bi bi-card-text text-muted"></i> {{ patient.cpf }}</div>
+          {% endif %}
+          {% if patient.blood_type %}
+          <div class="d-flex gap-2 mb-1"><i class="bi bi-droplet text-danger"></i> {{ patient.blood_type }}</div>
+          {% endif %}
+          {% if patient.allergies %}
+          <div class="mt-2"><span class="badge bg-danger-subtle text-danger">⚠ {{ patient.allergies }}</span></div>
+          {% endif %}
+        </div>
+        <hr>
+        <div class="d-grid gap-2">
+          <a href="{{ url_for('patient_edit', id=patient.id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Editar
+          </a>
+          <a href="{{ url_for('appointment_new') }}?patient_id={{ patient.id }}" class="btn btn-sm btn-success">
+            <i class="bi bi-calendar-plus me-1"></i>Agendar
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="d-flex justify-content-between mb-1">
+          <small class="text-muted">Total pago</small>
+          <span class="fw-bold text-success">R$ {{ '%.2f'|format(total_paid) }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <small class="text-muted">A receber</small>
+          <span class="fw-bold text-warning">R$ {{ '%.2f'|format(total_pending) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="col-lg-9">
+    <ul class="nav nav-tabs mb-3" id="patientTabs">
+      <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#tab-appts">
+          <i class="bi bi-calendar3 me-1"></i>Consultas <span class="badge bg-secondary ms-1">{{ appointments|length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-records">
+          <i class="bi bi-file-medical me-1"></i>Prontuário <span class="badge bg-secondary ms-1">{{ records|length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-payments">
+          <i class="bi bi-cash me-1"></i>Financeiro <span class="badge bg-secondary ms-1">{{ payments|length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#tab-new-record">
+          <i class="bi bi-plus me-1"></i>Novo Prontuário
+        </a>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <!-- Consultas -->
+      <div class="tab-pane fade show active" id="tab-appts">
+        <div class="card">
+          <div class="card-body p-0">
+            {% if appointments %}
+            <table class="table table-hover mb-0">
+              <thead><tr><th>Data</th><th>Hora</th><th>Tipo</th><th>Médico</th><th>Status</th><th class="text-end">Ações</th></tr></thead>
+              <tbody>
+              {% for a in appointments %}
+              <tr>
+                <td>{{ a.date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ a.time.strftime('%H:%M') }}</td>
+                <td>{{ a.type }}</td>
+                <td>{{ a.doctor.name if a.doctor else '—' }}</td>
+                <td><span class="badge badge-status-{{ a.status }} rounded-pill px-2">{{ a.status }}</span></td>
+                <td class="text-end">
+                  <a href="{{ url_for('appointment_edit', id=a.id) }}" class="btn btn-action btn-outline-secondary btn-sm"><i class="bi bi-pencil"></i></a>
+                  <form method="post" action="{{ url_for('appointment_delete', id=a.id) }}" class="d-inline" onsubmit="return confirm('Remover consulta?')">
+                    <button class="btn btn-action btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div class="text-center text-muted py-5">
+              <i class="bi bi-calendar-x fs-2 d-block mb-2"></i>Nenhuma consulta registrada
+              <div class="mt-2"><a href="{{ url_for('appointment_new') }}?patient_id={{ patient.id }}" class="btn btn-sm btn-success">Agendar Consulta</a></div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Prontuário -->
+      <div class="tab-pane fade" id="tab-records">
+        {% if records %}
+          {% for r in records %}
+          <div class="card mb-3">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-file-medical me-2"></i>{{ r.date.strftime('%d/%m/%Y') }}
+                {% if r.doctor_rel %}<small class="text-muted ms-2">— {{ r.doctor_rel.name }}</small>{% endif %}
+              </span>
+              <form method="post" action="{{ url_for('record_delete', id=r.id) }}" class="d-inline" onsubmit="return confirm('Remover registro?')">
+                <button class="btn btn-sm btn-outline-danger btn-action"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+            <div class="card-body" style="font-size:.9rem;">
+              <div class="row g-2">
+                {% if r.complaint %}<div class="col-md-6"><strong>Queixa:</strong><p class="mb-0 text-muted">{{ r.complaint }}</p></div>{% endif %}
+                {% if r.diagnosis %}<div class="col-md-6"><strong>Diagnóstico:</strong><p class="mb-0 text-muted">{{ r.diagnosis }}</p></div>{% endif %}
+                {% if r.prescription %}<div class="col-12"><strong>Prescrição:</strong><p class="mb-0 text-muted">{{ r.prescription }}</p></div>{% endif %}
+                {% if r.exams %}<div class="col-12"><strong>Exames:</strong><p class="mb-0 text-muted">{{ r.exams }}</p></div>{% endif %}
+                {% if r.evolution %}<div class="col-12"><strong>Evolução:</strong><p class="mb-0 text-muted">{{ r.evolution }}</p></div>{% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="card"><div class="text-center text-muted py-5">
+            <i class="bi bi-file-earmark-medical fs-2 d-block mb-2"></i>Nenhum registro no prontuário
+          </div></div>
+        {% endif %}
+      </div>
+
+      <!-- Financeiro -->
+      <div class="tab-pane fade" id="tab-payments">
+        <div class="card mb-3">
+          <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <span>Cobranças</span>
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalPayment">
+              <i class="bi bi-plus me-1"></i>Nova Cobrança
+            </button>
+          </div>
+          <div class="card-body p-0">
+            {% if payments %}
+            <table class="table table-hover mb-0">
+              <thead><tr><th>Descrição</th><th>Valor</th><th>Vencimento</th><th>Método</th><th>Status</th><th class="text-end">Ações</th></tr></thead>
+              <tbody>
+              {% for p in payments %}
+              <tr>
+                <td>{{ p.description }}</td>
+                <td class="fw-medium">R$ {{ '%.2f'|format(p.amount) }}</td>
+                <td>{{ p.due_date.strftime('%d/%m/%Y') if p.due_date else '—' }}</td>
+                <td>{{ p.method or '—' }}</td>
+                <td><span class="badge badge-status-{{ p.status }} rounded-pill px-2">{{ p.status }}</span></td>
+                <td class="text-end">
+                  {% if p.status == 'Pendente' %}
+                  <button class="btn btn-action btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalPay{{ p.id }}">
+                    <i class="bi bi-check"></i>
+                  </button>
+                  <div class="modal fade" id="modalPay{{ p.id }}" tabindex="-1">
+                    <div class="modal-dialog modal-sm"><div class="modal-content">
+                      <div class="modal-header"><h6 class="modal-title">Confirmar Pagamento</h6><button class="btn-close" data-bs-dismiss="modal"></button></div>
+                      <div class="modal-body">
+                        <p class="mb-2">{{ p.description }} — <strong>R$ {{ '%.2f'|format(p.amount) }}</strong></p>
+                        <form method="post" action="{{ url_for('payment_pay', id=p.id) }}">
+                          <select name="method" class="form-select form-select-sm mb-2">
+                            {% for m in ['Dinheiro','Cartão','Pix','Plano','Cheque'] %}
+                            <option {{ 'selected' if p.method == m }}>{{ m }}</option>{% endfor %}
+                          </select>
+                          <button class="btn btn-success btn-sm w-100">Confirmar</button>
+                        </form>
+                      </div>
+                    </div></div>
+                  </div>
+                  {% endif %}
+                  <form method="post" action="{{ url_for('payment_delete', id=p.id) }}" class="d-inline" onsubmit="return confirm('Remover cobrança?')">
+                    <button class="btn btn-action btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            {% else %}
+            <div class="text-center text-muted py-4">Nenhuma cobrança registrada</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Novo Prontuário -->
+      <div class="tab-pane fade" id="tab-new-record">
+        <div class="card">
+          <div class="card-header py-3"><i class="bi bi-plus-circle me-2"></i>Novo Registro de Prontuário</div>
+          <div class="card-body">
+            <form method="post" action="{{ url_for('record_new') }}">
+              <input type="hidden" name="patient_id" value="{{ patient.id }}">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label fw-medium">Data</label>
+                  <input type="date" name="date" class="form-control" value="" required>
+                </div>
+                <div class="col-md-8">
+                  <label class="form-label fw-medium">Médico</label>
+                  <select name="doctor_id" class="form-select">
+                    <option value="">— Selecionar —</option>
+                    {% for d in doctors %}
+                    <option value="{{ d.id }}">{{ d.name }}{% if d.specialty %} ({{ d.specialty }}){% endif %}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-medium">Queixa Principal</label>
+                  <textarea name="complaint" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-medium">Diagnóstico</label>
+                  <textarea name="diagnosis" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-medium">Prescrição / Receituário</label>
+                  <textarea name="prescription" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-medium">Exames Solicitados</label>
+                  <textarea name="exams" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-medium">Evolução</label>
+                  <textarea name="evolution" class="form-control" rows="2"></textarea>
+                </div>
+              </div>
+              <hr>
+              <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Salvar Prontuário</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nova Cobrança -->
+<div class="modal fade" id="modalPayment" tabindex="-1">
+  <div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">Nova Cobrança</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+      <form method="post" action="{{ url_for('payment_new') }}">
+        <input type="hidden" name="patient_id" value="{{ patient.id }}">
+        <div class="mb-3">
+          <label class="form-label">Descrição</label>
+          <input name="description" class="form-control" required placeholder="Ex: Consulta, Exame...">
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label">Valor (R$)</label>
+            <input type="number" step="0.01" name="amount" class="form-control" required>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Vencimento</label>
+            <input type="date" name="due_date" class="form-control">
+          </div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <label class="form-label">Forma de Pagamento</label>
+            <select name="method" class="form-select">
+              <option value="">—</option>
+              {% for m in ['Dinheiro','Cartão','Pix','Plano','Cheque'] %}
+              <option>{{ m }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select">
+              <option>Pendente</option>
+              <option>Pago</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Registrar Cobrança</button>
+      </form>
+    </div>
+  </div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set today's date on new record tab
+document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}

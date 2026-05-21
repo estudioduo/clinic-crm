@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Calendário — CRM Clínica{% endblock %}
+{% block page_title %}Calendário de Consultas{% endblock %}
+
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<style>
+  #calendar { background: #fff; border-radius: .75rem; padding: 1.25rem; border: 1px solid #e5e7eb; }
+  .fc-event { cursor: pointer; border-radius: 4px !important; font-size: .78rem !important; }
+  .fc-toolbar-title { font-size: 1.1rem !important; font-weight: 600 !important; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex gap-3 mb-3 align-items-center flex-wrap">
+  <div class="d-flex align-items-center gap-1 small">
+    <span class="legend-dot" style="background:#3b82f6"></span> Agendado
+  </div>
+  <div class="d-flex align-items-center gap-1 small">
+    <span class="legend-dot" style="background:#10b981"></span> Confirmado
+  </div>
+  <div class="d-flex align-items-center gap-1 small">
+    <span class="legend-dot" style="background:#6b7280"></span> Realizado
+  </div>
+  <div class="d-flex align-items-center gap-1 small">
+    <span class="legend-dot" style="background:#ef4444"></span> Cancelado
+  </div>
+  <div class="ms-auto">
+    <a href="{{ url_for('appointment_new') }}" class="btn btn-sm btn-success">
+      <i class="bi bi-plus-lg me-1"></i>Nova Consulta
+    </a>
+  </div>
+</div>
+<div id="calendar"></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales/pt-br.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const cal = new FullCalendar.Calendar(document.getElementById('calendar'), {
+    locale: 'pt-br',
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    events: '{{ url_for("api_appointments") }}',
+    eventClick: function(info) {
+      info.jsEvent.preventDefault();
+      if (info.event.url) window.location.href = info.event.url;
+    },
+    height: 'auto',
+    eventTimeFormat: { hour: '2-digit', minute: '2-digit', meridiem: false }
+  });
+  cal.render();
+});
+</script>
+{% endblock %}

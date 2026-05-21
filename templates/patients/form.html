@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if patient else 'Novo' }} Paciente — CRM Clínica{% endblock %}
+{% block page_title %}{{ 'Editar Paciente' if patient else 'Novo Paciente' }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header py-3">
+        <i class="bi bi-person-vcard me-2"></i>Dados do Paciente
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label fw-medium">Nome completo <span class="text-danger">*</span></label>
+              <input name="name" class="form-control" required value="{{ patient.name if patient else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-medium">CPF</label>
+              <input name="cpf" class="form-control" placeholder="000.000.000-00" value="{{ patient.cpf if patient else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-medium">Data de Nascimento</label>
+              <input type="date" name="birth_date" class="form-control"
+                     value="{{ patient.birth_date.strftime('%Y-%m-%d') if patient and patient.birth_date else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-medium">Telefone</label>
+              <input name="phone" class="form-control" placeholder="(11) 99999-9999" value="{{ patient.phone if patient else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-medium">E-mail</label>
+              <input type="email" name="email" class="form-control" value="{{ patient.email if patient else '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Endereço</label>
+              <input name="address" class="form-control" value="{{ patient.address if patient else '' }}">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-medium">Tipo Sanguíneo</label>
+              <select name="blood_type" class="form-select">
+                <option value="">—</option>
+                {% for bt in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}
+                <option value="{{ bt }}" {{ 'selected' if patient and patient.blood_type == bt }}>{{ bt }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-9">
+              <label class="form-label fw-medium">Alergias</label>
+              <input name="allergies" class="form-control" placeholder="Ex: Dipirona, Penicilina..."
+                     value="{{ patient.allergies if patient else '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-medium">Observações</label>
+              <textarea name="notes" class="form-control" rows="3">{{ patient.notes if patient else '' }}</textarea>
+            </div>
+          </div>
+          <hr class="my-4">
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>{{ 'Salvar Alterações' if patient else 'Cadastrar Paciente' }}
+            </button>
+            <a href="{{ url_for('patient_detail', id=patient.id) if patient else url_for('patients') }}"
+               class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
