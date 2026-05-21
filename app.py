@@ -219,6 +219,20 @@ def require_admin(f):
     return wrapper
 
 
+# ─── Landing Page ──────────────────────────────────────────────────────────────
+
+@app.route('/pricing')
+def pricing():
+    """Landing page with pricing"""
+    return render_template('landing.html')
+
+
+@app.route('/home')
+def home():
+    """Alias for pricing"""
+    return render_template('landing.html')
+
+
 # ─── Auth ─────────────────────────────────────────────────────────────────────
 
 @app.route('/login', methods=['GET', 'POST'])
