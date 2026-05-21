@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Criar Conta — OdontoCRM</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .signup-container {
+      width: 100%;
+      max-width: 450px;
+      padding: 1.5rem;
+    }
+    .signup-card {
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      padding: 2rem;
+    }
+    .brand-section {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .brand-icon {
+      font-size: 2.5rem;
+      color: #10b981;
+      margin-bottom: 0.5rem;
+    }
+    .brand-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 0;
+    }
+    .clinic-name {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid #e5e7eb;
+    }
+    .form-control:focus {
+      border-color: #10b981;
+      box-shadow: 0 0 0 0.2rem rgba(16, 185, 129, 0.25);
+    }
+    .btn-signup {
+      padding: 0.6rem 1.5rem;
+      font-weight: 600;
+      border-radius: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="signup-container">
+    <div class="signup-card">
+      <div class="brand-section">
+        <div class="brand-icon"><i class="bi bi-tooth"></i></div>
+        <h1 class="brand-title">OdontoCRM</h1>
+        <p class="clinic-name"><strong>{{ clinic.name }}</strong></p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endwith %}
+
+      <p class="text-muted small mb-3">
+        Bem-vindo! Complete seu cadastro para acessar o sistema de sua clínica.
+      </p>
+
+      <form method="post">
+        <div class="mb-3">
+          <label for="name" class="form-label">Nome Completo</label>
+          <input type="text" class="form-control" id="name" name="name" required autofocus>
+        </div>
+
+        <div class="mb-3">
+          <label for="email" class="form-label">E-mail</label>
+          <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Senha</label>
+          <input type="password" class="form-control" id="password" name="password" required minlength="6">
+          <small class="text-muted">Mínimo de 6 caracteres</small>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-signup w-100">Criar Conta</button>
+      </form>
+
+      <hr class="my-3">
+
+      <p class="text-center text-muted small mb-0">
+        Já tem uma conta? <a href="{{ url_for('login') }}" class="text-decoration-none">Faça login</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -135,14 +135,33 @@
 
   <div id="main">
     <div class="topbar">
-      <h5>{% block page_title %}{% endblock %}</h5>
+      <div>
+        <h5 style="margin-bottom: 0.25rem;">{% block page_title %}{% endblock %}</h5>
+        {% if g.user %}
+          <small class="text-muted">
+            {% if g.user.clinic %}{{ g.user.clinic.name }}{% elif g.user.is_admin %}Painel Admin{% endif %}
+          </small>
+        {% endif %}
+      </div>
       <div class="d-flex align-items-center gap-3">
+        {% if not request.endpoint or 'admin' not in (request.endpoint or '') %}
         <a href="{{ url_for('appointment_new') }}" class="btn btn-primary btn-sm">
           <i class="bi bi-plus-lg"></i> Nova Consulta
         </a>
         <a href="{{ url_for('patient_new') }}" class="btn btn-outline-secondary btn-sm">
           <i class="bi bi-person-plus"></i> Novo Paciente
         </a>
+        {% endif %}
+        {% if g.user %}
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> {{ g.user.name }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item small" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-left me-2"></i>Sair</a></li>
+          </ul>
+        </div>
+        {% endif %}
       </div>
     </div>
 

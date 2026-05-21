@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %}Admin — OdontoCRM{% endblock %}
+{% block page_title %}Painel do Proprietário{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#3b82f6,#2563eb);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-value">{{ total_clinics }}</div>
+          <div class="stat-label">Clínicas Cadastradas</div>
+        </div>
+        <i class="bi bi-hospital stat-icon"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#10b981,#059669);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-value">{{ active_clinics }}</div>
+          <div class="stat-label">Clínicas Ativas</div>
+        </div>
+        <i class="bi bi-check-circle stat-icon"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-4">
+    <div class="stat-card" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <div class="stat-value">R$ {{ '%.0f'|format(total_revenue) }}</div>
+          <div class="stat-label">Receita Total</div>
+        </div>
+        <i class="bi bi-cash-stack stat-icon"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-12">
+    <div class="card mb-3">
+      <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-hospital me-2"></i>Clínicas Clientes</span>
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalNewClinic">
+          <i class="bi bi-plus-lg me-1"></i>Nova Clínica
+        </button>
+      </div>
+      <div class="card-body p-0">
+        {% if clinic_stats %}
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Clínica</th>
+              <th>CNPJ</th>
+              <th>Plano</th>
+              <th>Status</th>
+              <th>Pacientes</th>
+              <th>Consultas Futuras</th>
+              <th>Receita</th>
+              <th class="text-end">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for stat in clinic_stats %}
+          <tr>
+            <td class="fw-medium">{{ stat.clinic.name }}</td>
+            <td class="text-muted">{{ stat.clinic.cnpj or '—' }}</td>
+            <td>
+              <span class="badge badge-plan-{{ stat.clinic.plan }} rounded-pill px-2">
+                {{ 'Free' if stat.clinic.plan == 'free' else 'Basic' if stat.clinic.plan == 'basic' else 'Premium' }}
+              </span>
+            </td>
+            <td>
+              <span class="badge {{ 'bg-success-subtle text-success' if stat.clinic.status == 'active' else 'bg-secondary-subtle text-secondary' }} rounded-pill px-2">
+                {{ 'Ativa' if stat.clinic.status == 'active' else 'Suspensa' if stat.clinic.status == 'suspended' else 'Cancelada' }}
+              </span>
+            </td>
+            <td><span class="badge bg-light text-dark">{{ stat.patients }}</span></td>
+            <td><span class="badge bg-light text-dark">{{ stat.appointments }}</span></td>
+            <td class="fw-bold">R$ {{ '%.2f'|format(stat.revenue) }}</td>
+            <td class="text-end">
+              <a href="{{ url_for('admin_access_clinic', clinic_id=stat.clinic.id) }}" class="btn btn-action btn-sm btn-outline-primary" title="Acessar como admin">
+                <i class="bi bi-box-arrow-in-right"></i>
+              </a>
+              <button class="btn btn-action btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalEdit{{ stat.clinic.id }}" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <!-- Modal editar -->
+              <div class="modal fade" id="modalEdit{{ stat.clinic.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h6 class="modal-title">Editar Clínica</h6>
+                      <button class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p class="text-muted small">Clínica: <strong>{{ stat.clinic.name }}</strong></p>
+                      <p class="text-muted small">Email do Admin: <strong>{{ stat.clinic.admin_email or '—' }}</strong></p>
+                      <p class="text-muted small">Data de Criação: <strong>{{ stat.clinic.created_at.strftime('%d/%m/%Y') }}</strong></p>
+                      <hr>
+                      <div class="alert alert-info small" role="alert">
+                        Status: <strong>{{ 'Ativa' if stat.clinic.status == 'active' else 'Suspensa' if stat.clinic.status == 'suspended' else 'Cancelada' }}</strong>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-hospital fs-1 d-block mb-3"></i>Nenhuma clínica cadastrada
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nova Clínica -->
+<div class="modal fade" id="modalNewClinic" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title">Cadastrar Nova Clínica</h6>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{{ url_for('admin_clinic_new') }}">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small">Nome da Clínica</label>
+            <input type="text" name="name" class="form-control form-control-sm" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">CNPJ (opcional)</label>
+            <input type="text" name="cnpj" class="form-control form-control-sm" placeholder="00.000.000/0000-00">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small">E-mail do Admin</label>
+            <input type="email" name="admin_email" class="form-control form-control-sm" required>
+          </div>
+          <div class="alert alert-info small" role="alert">
+            <i class="bi bi-info-circle me-1"></i>
+            Um link de convite será gerado e exibido após a criação.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success btn-sm">Criar Clínica</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+  .badge-plan-free { background: #dbeafe; color: #1d4ed8; }
+  .badge-plan-basic { background: #fef3c7; color: #92400e; }
+  .badge-plan-premium { background: #f3e8ff; color: #6b21a8; }
+</style>
+{% endblock %}
