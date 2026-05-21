@@ -233,7 +233,11 @@ def login():
             app.permanent_session_lifetime = timedelta(days=7)
             session['user_id'] = user.id
             flash(f'Bem-vindo, {user.name}!', 'success')
-            return redirect(url_for('dashboard'))
+            # Admin vai para /admin, outros vão para /dashboard
+            if user.is_admin:
+                return redirect(url_for('admin_dashboard'))
+            else:
+                return redirect(url_for('dashboard'))
         else:
             flash('Email ou senha inválidos', 'danger')
 
