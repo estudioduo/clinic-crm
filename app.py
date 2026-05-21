@@ -673,8 +673,9 @@ def financial():
     payments = Payment.query.filter_by(clinic_id=clinic_id).order_by(Payment.due_date.desc()).all()
     total_paid = sum(p.amount for p in payments if p.status == 'Pago')
     total_pending = sum(p.amount for p in payments if p.status == 'Pendente')
+    total_canceled = sum(p.amount for p in payments if p.status == 'Cancelado')
     return render_template('financial/list.html', payments=payments,
-        total_paid=total_paid, total_pending=total_pending,
+        total_paid=total_paid, total_pending=total_pending, total_canceled=total_canceled,
         patients=Patient.query.filter_by(clinic_id=clinic_id).all(),
         today=today)
 
@@ -865,9 +866,66 @@ def treatment_delete(id):
     return redirect(url_for('treatments'))
 
 
-# ─── Financial ────────────────────────────────────────────────────────────────
+# ─── Payments (CRUD) ──────────────────────────────────────────────────────────
 
-@app.route('/financial')
+@app.route('/payment/new', methods=['POST'])
+@require_login
+def payment_new():
+    clinic_id = get_clinic_id()
+    patient_id = request.form.get('patient_id', type=int)
+    description = request.form.get('description')
+    amount = request.form.get('amount', type=float)
+    due_date = request.form.get('due_date')
+    method = request.form.get('method')
+    status = request.form.get('status', 'Pendente')
+
+    payment = Payment(
+        clinic_id=clinic_id,
+        patient_id=patient_id,
+        description=description,
+        amount=amount,
+        due_date=datetime.strptime(due_date, '%Y-%m-%d').date() if due_date else None,
+        method=method,
+        status=status
+    )
+    db.session.add(payment)
+    db.session.commit()
+    flash('Cobrança registrada!', 'success')
+    return redirect(url_for('financial'))
+
+
+@app.route('/payment/<int:id>/pay', methods=['POST'])
+@require_login
+def payment_pay(id):
+    clinic_id = get_clinic_id()
+    payment = Payment.query.get_or_404(id)
+    if payment.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('financial'))
+
+    payment.status = 'Pago'
+    payment.method = request.form.get('method')
+    payment.paid_date = date.today()
+    db.session.commit()
+    flash('Pagamento confirmado!', 'success')
+    return redirect(url_for('financial'))
+
+
+@app.route('/payment/<int:id>/delete', methods=['POST'])
+@require_login
+def payment_delete(id):
+    clinic_id = get_clinic_id()
+    payment = Payment.query.get_or_404(id)
+    if payment.clinic_id != clinic_id:
+        flash('Acesso negado', 'danger')
+        return redirect(url_for('financial'))
+
+    db.session.delete(payment)
+    db.session.commit()
+    flash('Cobrança removida.', 'info')
+    return redirect(url_for('financial'))
+
+
 # ─── Init ──────────────────────────────────────────────────────────────────────
 
 def create_sample_data():
