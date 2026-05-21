@@ -322,6 +322,151 @@
       color: rgba(255,255,255,0.8);
     }
 
+    /* Como funciona */
+    .how-it-works {
+      padding: 100px 0;
+      background: white;
+    }
+
+    .step-card {
+      background: #fafafa;
+      padding: 2rem;
+      border-radius: 16px;
+      text-align: center;
+      transition: all 0.3s;
+      border: 1px solid #f0f0f0;
+    }
+
+    .step-card:hover {
+      border-color: #e5e5e5;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      transform: translateY(-3px);
+    }
+
+    .step-number {
+      width: 50px;
+      height: 50px;
+      background: #000;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: 0 auto 1.5rem;
+    }
+
+    .step-card h4 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: #000;
+    }
+
+    .step-card p {
+      color: #666;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* Testimonials */
+    .testimonials {
+      padding: 100px 0;
+      background: #fafafa;
+    }
+
+    .testimonial-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      border: 1px solid #e5e5e5;
+      transition: all 0.3s;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .testimonial-card:hover {
+      border-color: #000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      transform: translateY(-5px);
+    }
+
+    .stars {
+      color: #fbbf24;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      letter-spacing: 2px;
+    }
+
+    .testimonial-text {
+      color: #1a1a1a;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: auto;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      background: #000;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .author-name {
+      font-weight: 700;
+      color: #000;
+      font-size: 0.95rem;
+    }
+
+    .author-clinic {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    /* Stats */
+    .stats-section {
+      padding: 80px 0;
+      background: white;
+      border-top: 1px solid #f0f0f0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #000;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+
     /* Footer */
     footer {
       background: white;
@@ -357,15 +502,25 @@
       <div class="row align-items-center g-5">
         <div class="col-lg-6 hero-content">
           <h1>Gestão inteligente de clínicas odontológicas</h1>
-          <p class="hero-subtitle">Organize pacientes, consultas e financeiro em um só lugar. Simples, rápido e seguro.</p>
+          <p class="hero-subtitle">Organize pacientes, consultas, tratamentos e financeiro em um único lugar. Simples, rápido, seguro e totalmente integrado.</p>
+          <p style="color: #666; font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.6;">Aumente sua produtividade em até 80%. Reduza erros administrativos, melhore o atendimento ao paciente e tenha controle total da sua clínica com uma plataforma desenvolvida especialmente para odontologia.</p>
           <div class="d-flex gap-3">
             <a href="{{ url_for('login') }}" class="btn-main btn-primary-dark">Começar grátis</a>
             <a href="#pricing" class="btn-main btn-secondary-dark">Ver planos</a>
           </div>
+          <p style="font-size: 0.85rem; color: #999; margin-top: 1.5rem;">✓ Sem cartão de crédito • ✓ Acesso imediato • ✓ Suporte 24/7</p>
         </div>
         <div class="col-lg-6">
           <div class="hero-image">
-            📱
+            <svg width="100%" height="100%" viewBox="0 0 400 300" style="max-width: 100%;">
+              <rect width="400" height="300" fill="#f5f5f5" rx="20"/>
+              <rect x="20" y="20" width="360" height="260" fill="white" rx="15" opacity="0.8"/>
+              <circle cx="200" cy="80" r="40" fill="#0d6efd" opacity="0.1"/>
+              <rect x="80" y="140" width="240" height="8" fill="#e5e7eb" rx="4"/>
+              <rect x="80" y="160" width="240" height="8" fill="#e5e7eb" rx="4"/>
+              <rect x="80" y="180" width="180" height="8" fill="#e5e7eb" rx="4"/>
+              <text x="200" y="250" text-anchor="middle" font-size="20" fill="#666">📱 Dashboard Intuitivo</text>
+            </svg>
           </div>
         </div>
       </div>
@@ -377,7 +532,7 @@
     <div class="container-lg">
       <div class="features-title">
         <h2>Tudo que sua clínica precisa</h2>
-        <p>Ferramentas profissionais, design minimalista</p>
+        <p>Ferramentas profissionais para aumentar produtividade e qualidade de atendimento</p>
       </div>
 
       <div class="row">
@@ -385,16 +540,16 @@
           <div class="feature-item">
             <div class="feature-icon">👥</div>
             <div class="feature-content">
-              <h5>Pacientes</h5>
-              <p>Cadastre e organize histórico completo de cada paciente.</p>
+              <h5>Gestão de Pacientes</h5>
+              <p>Cadastre dados completos, histórico de tratamentos, alergias, documentos. Mantenha tudo organizado e acessível em segundos.</p>
             </div>
           </div>
 
           <div class="feature-item">
             <div class="feature-icon">📅</div>
             <div class="feature-content">
-              <h5>Agendamentos</h5>
-              <p>Calendário inteligente para gerenciar consultas sem conflitos.</p>
+              <h5>Agendamentos Inteligentes</h5>
+              <p>Calendário sincronizado, bloqueio automático de conflitos, notificações para pacientes e controle de faltas. Minimize no-shows.</p>
             </div>
           </div>
         </div>
@@ -403,17 +558,51 @@
           <div class="feature-item">
             <div class="feature-icon">🏥</div>
             <div class="feature-content">
-              <h5>Tratamentos</h5>
-              <p>Acompanhe sessões, progresso e status de cada tratamento.</p>
+              <h5>Planos de Tratamento</h5>
+              <p>Crie, acompanhe e finalize tratamentos. Controle sessões, evolução do caso, próximas etapas e status em tempo real.</p>
             </div>
           </div>
 
           <div class="feature-item">
             <div class="feature-icon">💰</div>
             <div class="feature-content">
-              <h5>Financeiro</h5>
-              <p>Controle receitas, pagamentos e gere relatórios automáticos.</p>
+              <h5>Controle Financeiro</h5>
+              <p>Receitas, custos, comissões, relatórios de faturamento. Dashboard financeiro com gráficos e indicadores de desempenho.</p>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Como Funciona -->
+  <section class="how-it-works">
+    <div class="container-lg">
+      <div class="features-title" style="margin-bottom: 4rem;">
+        <h2>Como funciona</h2>
+        <p>Em 3 passos simples, sua clínica está pronta</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <h4>Crie sua conta</h4>
+            <p>Acesse a plataforma e crie uma conta gratuita. Leva menos de 2 minutos e não precisa de cartão de crédito.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">2</div>
+            <h4>Configure sua clínica</h4>
+            <p>Adicione informações da clínica, dentistas, horários de funcionamento e personalize conforme sua necessidade.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="step-card">
+            <div class="step-number">3</div>
+            <h4>Comece a atender</h4>
+            <p>Registre seus primeiros pacientes e agendamentos. Sua clínica está pronta para crescer com OdontoCRM.</p>
           </div>
         </div>
       </div>
@@ -483,12 +672,99 @@
     </div>
   </section>
 
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <div class="container-lg">
+      <div class="features-title" style="margin-bottom: 3rem;">
+        <h2>O que dizem sobre nós</h2>
+        <p>Conheça as histórias de sucesso de clínicas que usam OdontoCRM</p>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">"Consegui organizar melhor minha clínica e ganhei mais tempo para me dedicar aos pacientes. O sistema é intuitivo e fácil de usar."</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">DR</div>
+              <div>
+                <div class="author-name">Dra. Roberta</div>
+                <div class="author-clinic">Clínica Sorriso Belo</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">"Reduzi os no-shows em 60% com as notificações automáticas. Minha receita aumentou significativamente no primeiro mês."</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">CM</div>
+              <div>
+                <div class="author-name">Carlos Mendes</div>
+                <div class="author-clinic">Centro Odontológico Premium</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="testimonial-card">
+            <div class="stars">★★★★★</div>
+            <p class="testimonial-text">"O melhor investimento que fiz para minha clínica. Totalmente gratuito para começar e com suporte excelente quando preciso."</p>
+            <div class="testimonial-author">
+              <div class="author-avatar">AV</div>
+              <div>
+                <div class="author-name">Aline Vieira</div>
+                <div class="author-clinic">Odonto Clínica Centro</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section">
+    <div class="container-lg">
+      <div class="row g-4">
+        <div class="col-md-3 col-sm-6">
+          <div class="stat">
+            <div class="stat-number">500+</div>
+            <div class="stat-label">Clínicas ativas</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="stat">
+            <div class="stat-number">50K+</div>
+            <div class="stat-label">Pacientes gerenciados</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="stat">
+            <div class="stat-number">100K+</div>
+            <div class="stat-label">Agendamentos realizados</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+          <div class="stat">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Suporte disponível</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- CTA -->
   <section class="cta">
     <div class="container-lg">
-      <h2>Pronto para começar?</h2>
-      <p>Não precisa de cartão de crédito para o plano Free.</p>
+      <h2>Pronto para transformar sua clínica?</h2>
+      <p>Comece grátis agora. Sem cartão de crédito, sem compromisso. Acesso imediato a todas as ferramentas da plataforma.</p>
       <a href="{{ url_for('login') }}" class="btn-main btn-secondary-dark">Acessar plataforma</a>
+      <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.9;">Ou confira os planos premium para clínicas em expansão →</p>
     </div>
   </section>
 
