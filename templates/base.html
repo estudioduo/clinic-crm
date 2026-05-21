@@ -8,266 +8,82 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     :root {
-      --sidebar-width: 260px;
-      --primary: #6366f1;
-      --secondary: #8b5cf6;
-      --accent: #ec4899;
-      --dark-bg: #0f172a;
-      --card-bg: #1e293b;
-      --border: #334155;
+      --sidebar-width: 240px;
+      --primary: #0d6efd;
+      --sidebar-bg: #1a1d23;
     }
-
-    * { transition: background-color 0.2s, color 0.2s; }
-
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
-      color: #e2e8f0;
-      min-height: 100vh;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    /* Sidebar */
+    body { background: #f4f6fb; min-height: 100vh; }
     #sidebar {
       width: var(--sidebar-width);
       min-height: 100vh;
-      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      background: var(--sidebar-bg);
       position: fixed;
       top: 0; left: 0;
       z-index: 100;
       display: flex;
       flex-direction: column;
-      border-right: 1px solid var(--border);
-      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.5);
     }
-
     .sidebar-brand {
-      padding: 2rem 1.5rem;
+      padding: 1.5rem 1.25rem;
+      border-bottom: 1px solid #2d3139;
       color: #fff;
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-      border-bottom: 1px solid var(--border);
     }
-
-    .sidebar-brand .brand-icon {
-      font-size: 1.8rem;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .sidebar-brand h6 {
-      margin: 0;
-      font-size: 0.75rem;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    .sidebar-nav {
-      flex: 1;
-      padding: 1rem 0;
-      overflow-y: auto;
-    }
-
+    .sidebar-brand .brand-icon { font-size: 1.5rem; color: #3b82f6; }
+    .sidebar-brand h6 { margin: 0; font-size: .85rem; color: #9ca3af; }
+    .sidebar-nav { flex: 1; padding: .5rem 0; }
     .sidebar-nav .nav-label {
-      font-size: 0.65rem;
+      font-size: .65rem;
       text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: #64748b;
-      padding: 1rem 1.5rem 0.5rem;
-      font-weight: 700;
+      letter-spacing: .1em;
+      color: #6b7280;
+      padding: .75rem 1.25rem .25rem;
     }
-
     .sidebar-nav a {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
-      padding: 0.85rem 1.5rem;
-      color: #cbd5e1;
+      gap: .65rem;
+      padding: .55rem 1.25rem;
+      color: #d1d5db;
       text-decoration: none;
-      font-size: 0.875rem;
-      border-left: 3px solid transparent;
-      margin: 0 0.5rem;
-      border-radius: 0.5rem;
-      transition: all 0.3s;
+      font-size: .875rem;
+      border-radius: 0;
+      transition: background .15s;
     }
-
-    .sidebar-nav a:hover {
-      background: rgba(99, 102, 241, 0.15);
-      color: #e2e8f0;
-      border-left-color: var(--primary);
-    }
-
-    .sidebar-nav a.active {
-      background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), transparent);
+    .sidebar-nav a:hover, .sidebar-nav a.active {
+      background: #2d3139;
       color: #fff;
-      border-left-color: var(--primary);
     }
-
-    .sidebar-nav a i {
-      width: 20px;
-      text-align: center;
-      font-size: 1.1rem;
-    }
-
-    #main {
-      margin-left: var(--sidebar-width);
-    }
-
-    /* Topbar */
+    .sidebar-nav a.active { border-left: 3px solid #3b82f6; }
+    .sidebar-nav a i { width: 18px; text-align: center; font-size: 1rem; }
+    #main { margin-left: var(--sidebar-width); }
     .topbar {
-      background: rgba(30, 41, 59, 0.8);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 2rem;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: .75rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
-
-    .topbar h5 {
-      margin: 0;
-      font-weight: 700;
-      font-size: 1.25rem;
-      background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .page-content {
-      padding: 2rem;
-    }
-
-    /* Cards */
-    .card {
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid var(--border);
-      border-radius: 1rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(10px);
-      transition: all 0.3s;
-    }
-
-    .card:hover {
-      border-color: var(--primary);
-      box-shadow: 0 16px 48px rgba(99, 102, 241, 0.15);
-      transform: translateY(-2px);
-    }
-
-    .card-header {
-      background: linear-gradient(90deg, rgba(99, 102, 241, 0.05), transparent);
-      border-bottom: 1px solid var(--border);
-      font-weight: 700;
-      color: #e2e8f0;
-    }
-
-    /* Stat Cards */
-    .stat-card {
-      border-radius: 1rem;
-      color: #fff;
-      padding: 1.75rem;
-      border: 1px solid var(--border);
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.1));
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(10px);
-    }
-
-    .stat-card .stat-icon {
-      font-size: 2.5rem;
-      opacity: 0.9;
-      margin-bottom: 0.5rem;
-    }
-
-    .stat-card .stat-value {
-      font-size: 2rem;
-      font-weight: 800;
-      margin: 0.5rem 0;
-    }
-
-    .stat-card .stat-label {
-      font-size: 0.85rem;
-      opacity: 0.8;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Badges */
-    .badge-status-Agendado { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-    .badge-status-Confirmado { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-    .badge-status-Realizado { background: rgba(107, 114, 128, 0.2); color: #d1d5db; }
-    .badge-status-Cancelado { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
-    .badge-status-Pendente { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-    .badge-status-Pago { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-    .badge-status-Proposta { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-    .badge-status-"Em andamento" { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-    .badge-status-Concluído { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-
-    /* Table */
-    .table {
-      color: #cbd5e1;
-    }
-
-    .table th {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #94a3b8;
-      font-weight: 700;
-      border-color: var(--border);
-    }
-
-    .table td {
-      vertical-align: middle;
-      border-color: var(--border);
-    }
-
-    .table tbody tr {
-      transition: all 0.2s;
-    }
-
-    .table tbody tr:hover {
-      background: rgba(99, 102, 241, 0.1);
-    }
-
-    /* Buttons */
-    .btn-primary {
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      border: none;
-      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-    }
-
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
-    }
-
-    .btn-action {
-      padding: 0.4rem 0.75rem;
-      font-size: 0.8rem;
-      border-radius: 0.5rem;
-      transition: all 0.2s;
-    }
-
-    .btn-action:hover {
-      transform: scale(1.05);
-    }
-
-    /* Alerts */
-    .alert {
-      background: rgba(30, 41, 59, 0.8);
-      border: 1px solid var(--border);
-      color: #e2e8f0;
-      border-radius: 0.75rem;
-    }
-
-    .alert-success { border-left: 4px solid #22c55e; }
-    .alert-danger { border-left: 4px solid #ef4444; }
-    .alert-warning { border-left: 4px solid #f59e0b; }
-    .alert-info { border-left: 4px solid #3b82f6; }
-
+    .topbar h5 { margin: 0; font-weight: 600; color: #111827; }
+    .page-content { padding: 1.5rem; }
+    .card { border: 1px solid #e5e7eb; border-radius: .75rem; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .card-header { background: #fff; border-bottom: 1px solid #f3f4f6; font-weight: 600; }
+    .stat-card { border-radius: .75rem; color: #fff; padding: 1.25rem; }
+    .stat-card .stat-icon { font-size: 2rem; opacity: .8; }
+    .stat-card .stat-value { font-size: 1.75rem; font-weight: 700; }
+    .stat-card .stat-label { font-size: .8rem; opacity: .85; }
+    .badge-status-Agendado { background: #dbeafe; color: #1d4ed8; }
+    .badge-status-Confirmado { background: #d1fae5; color: #065f46; }
+    .badge-status-Realizado { background: #f3f4f6; color: #374151; }
+    .badge-status-Cancelado { background: #fee2e2; color: #991b1b; }
+    .badge-status-Pendente { background: #fef3c7; color: #92400e; }
+    .badge-status-Pago { background: #d1fae5; color: #065f46; }
+    .badge-status-Proposta { background: #dbeafe; color: #1d4ed8; }
+    .badge-status-"Em andamento" { background: #fcd34d; color: #78350f; }
+    .badge-status-Concluído { background: #d1fae5; color: #065f46; }
+    .table th { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; font-weight: 600; }
+    .table td { vertical-align: middle; }
+    .btn-action { padding: .2rem .45rem; font-size: .78rem; }
     @media (max-width: 768px) {
       #sidebar { transform: translateX(-100%); }
       #main { margin-left: 0; }
